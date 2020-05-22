@@ -1,24 +1,14 @@
-CREATE TABLE ##npc_dupes(MapNpcId INT);
+-- remove monsters with same VNum that are on the same location
+-- this won't remove all the dupes, because the monsters could have moved since the last map entry
+
+CREATE TABLE ##monster_dupes(MapMonsterId INT);
 
 WITH cte AS (
-SELECT MapNpcId, ROW_NUMBER() OVER ( PARTITION BY NpcVNum, MapId, MapX, MapY ORDER BY NpcVNum ) AS row_num FROM MapNpc
+SELECT MapMonsterId, ROW_NUMBER() OVER ( PARTITION BY MonsterVNum, MapId, MapX, MapY ORDER BY MonsterVNum) AS row_num FROM MapMonster
 )
-INSERT INTO ##npc_dupes SELECT MapNpcId FROM cte WHERE row_num > 1;
+INSERT INTO ##monster_dupes SELECT MapMonsterId FROM cte WHERE row_num > 1;
 
-DELETE rl FROM RecipeList rl
-	INNER JOIN ##npc_dupes d ON rl.MapNpcId = d.MapNpcId;
+DELETE mm FROM MapMonster mm
+	INNER JOIN ##monster_dupes md ON mm.MapMonsterId = md.MapMonsterId;
 
-DELETE si FROM ShopItem si
-	INNER JOIN Shop s ON s.ShopId = si.ShopId
-	INNER JOIN ##npc_dupes d ON s.MapNpcId = d.MapNpcId;
-
-DELETE t FROM Teleporter t
-	INNER JOIN ##npc_dupes d ON d.MapNpcId = t.MapNpcId;
-	
-DELETE s FROM Shop s
-	INNER JOIN ##npc_dupes d ON s.MapNpcId = d.MapNpcId;
-
-DELETE mn FROM MapNpc mn
-	INNER JOIN ##npc_dupes d ON mn.MapNpcId = d.MapNpcId;
-
-DROP TABLE ##npc_dupes;
+DROP TABLE ##monster_dupes;

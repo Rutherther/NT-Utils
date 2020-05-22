@@ -1,3 +1,5 @@
+-- remove all npcs with same VNum that are on the same location
+
 CREATE TABLE ##npc_dupes(MapNpcId INT);
 
 WITH cte AS (
